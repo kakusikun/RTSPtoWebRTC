@@ -1,4 +1,11 @@
 
+let Status = {
+    SUCCESS: 16,
+    PROCESS: 17,
+    CLEAN: 18,
+    SLIENCE: 19,
+}
+
 let Render = {
     generalTitle: "Acer Inc. へようこそ",
     recognizeFaceTitle: "識別中",
@@ -15,6 +22,8 @@ let Render = {
     coordIdTitle: null,
     coordValidRegion: null,
 };
+
+let log = msg => { console.log(msg); }
 
 function getCoordProp (px1, py1, px2, py2, th) {
     return {
@@ -87,15 +96,29 @@ function resizeRender () {
     }
 }
 
-function plotMessage (face) {
-    if ( face.is_stayed ) {
-        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
-        plotText(face.temperature, Render.coordTemp, 'white', false, 1.0, true);
-        plotText(face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0, true);
-    } else {
-        plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75, true);
-        plotText(null, Render.coordTemp, 'green', false, 1.0, true);
-        plotText(null, Render.coordId, 'green', false, 1.0, true);
+function plotMessage (data) {
+    switch (data.status) {
+        case Status.SUCCESS:
+            log( 'success' );
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
+            plotText(data.face.temperature, Render.coordTemp, 'white', false, 1.0, true);
+            plotText(data.face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0, true);
+            break;
+        case Status.PROCESS:
+            log( 'process' );
+            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75, true);
+            plotText(null, Render.coordTemp, 'green', false, 1.0, true);
+            plotText(null, Render.coordId, 'green', false, 1.0, true);
+            break;
+            case Status.CLEAN:
+            log( 'clean' );
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
+            plotText(null, Render.coordTemp, 'green', false, 1.0, true);
+            plotText(null, Render.coordId, 'green', false, 1.0, true);
+            break;
+            case Status.SLIENCE:
+            log( 'silence' );
+            break;            
     }
 }
 
@@ -144,7 +167,7 @@ function plotText( text, coord, level, background, alpha, clear) {
                 case 'orange':
                     ctx.fillStyle = 'rgb(255, 160, 4)';
                     break;
-                    case 'white':
+                default:
                     ctx.fillStyle = 'rgb(255, 255, 255)';
                     break;
 
@@ -169,8 +192,8 @@ function connectThoth () {
         ws.onclose = () => console.log('disconnected');
         ws.onmessage = (msg) => {
             try {
-                var face = JSON.parse(msg.data);
-                plotMessage(face);
+                var data = JSON.parse(msg.data);
+                plotMessage(data);
             } catch (e) {
                 console.log(e);
             }
