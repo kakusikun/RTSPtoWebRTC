@@ -4,9 +4,9 @@ let Render = {
     recognizeFaceTitle: "識別中",
     canvas: null,
     ctx: null,
-    coordTitleProp: getCoordProp(0, 0, 1080, 175, 57),
-    coordTempProp: getCoordProp(0, 175, 1080, 287.5, 112.5),
-    coordIdProp: getCoordProp(0, 287.5, 1080, 355, 67.5),
+    coordTitleProp: getCoordProp(0, 0, 1080, 138, 70),
+    coordTempProp: getCoordProp(0, 150, 1080, 270, 95),
+    coordIdProp: getCoordProp(0, 280, 1080, 355, 75),
     coordIdTitleProp: getCoordProp(0, 355, 1080, 400, 45),
     coordValidRegionProp: getCoordProp(145, 452, 914, 1465),
     coordTitle: null,
@@ -71,7 +71,7 @@ function initRender () {
 }
 
 function resizeRender () {
-    var height =  $( window ).height();
+    var height =  window.innerHeight;
     var videoElt = $( '#main-stream' )[ 0 ];
     if ( videoElt !== null ) {
         var ratio = height / videoElt.videoHeight;
@@ -90,8 +90,8 @@ function resizeRender () {
 function plotMessage (face) {
     if ( face.is_stayed ) {
         plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
-        plotText(face.temperature, Render.coordTemp, 'green', false, 1.0, true);
-        plotText(face.cid.slice(0, 8), Render.coordId, 'green', false, 1.0, true);
+        plotText(face.temperature, Render.coordTemp, 'white', false, 1.0, true);
+        plotText(face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0, true);
     } else {
         plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75, true);
         plotText(null, Render.coordTemp, 'green', false, 1.0, true);
@@ -144,6 +144,10 @@ function plotText( text, coord, level, background, alpha, clear) {
                 case 'orange':
                     ctx.fillStyle = 'rgb(255, 160, 4)';
                     break;
+                    case 'white':
+                    ctx.fillStyle = 'rgb(255, 255, 255)';
+                    break;
+
             }
     
             ctx.font = `bold ${ parseInt( 10 * textScale ) }px 'Noto Sans TC'`;

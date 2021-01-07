@@ -8,11 +8,6 @@ let config = {
   }]
 };
 
-// let render = {
-//     canvas: null,
-//     ctx: null,
-// };
-
 const pc = new RTCPeerConnection(config);
 pc.onnegotiationneeded = handleNegotiationNeededEvent;
 
@@ -29,66 +24,12 @@ pc.ontrack = function(event) {
   el.autoplay = true
   el.controls = true
   el.setAttribute( 'style' , '' );
-
-  // canvas.id = 'render-video';
-  // render.canvas = canvas;
-
-  // render.ctx = ctx;
-
   document.getElementById( 'remoteVideos' ).appendChild(el);
-  // document.getElementById( 'remoteVideos' ).appendChild(canvas);
-
   initRender();
 }
 
-// function resize () {
-//   var height =  $( window ).height();
-//   var videoElt = $( '#main-stream' )[ 0 ];
-//   if ( videoElt !== null ) {
-//     var ratio = height / videoElt.videoHeight;
-//     videoElt.width = videoElt.videoWidth * ratio;
-//     videoElt.height = height;
-//     render.canvas.width = videoElt.videoWidth * ratio;
-//     render.canvas.height = height;
-//   }
-// }
-
-// function plotText (text, level = 0) {
-//     if ( render.ctx !== null ) {
-//         render.ctx.clearRect(0, 0, render.canvas.width, render.canvas.height);
-//         render.ctx.font = "10px Arial";
-//         var metric = render.ctx.measureText(text);
-//         var textScale = render.canvas.width / metric.width;
-//         render.ctx.font = `${ parseInt( 10 * textScale ) }px Arial`;
-//         if ( level === 0) {
-//             render.ctx.fillStyle = 'rgb(42, 175, 121)';
-//             render.ctx.strokeStyle = 'rgb(255, 255, 255)';
-//         }
-//         var center = {
-//             x: parseInt(render.canvas.width/2),
-//             y: metric.actualBoundingBoxAscent + 10,
-//         }
-//         render.ctx.textAlign = "center";
-//         render.ctx.fillText(text, center.x, center.y);
-//         render.ctx.strokeText(text, center.x, center.y);
-//     }
-// }
-
 pc.oniceconnectionstatechange = e => log(pc.iceConnectionState)
 
-// function connectThoth () {
-//     let ws = new WebSocket('ws://10.36.172.146:8000')
-//     ws.onopen = () => console.log('connected');
-//     ws.onclose = () => console.log('disconnected');
-//     ws.onmessage = msg => plotText(msg.data);
-//     ws.onerror = (msg) => {
-//         setTimeout(() => {
-//             console.log("reconnect");
-//             connectThoth();
-//         }, 10000);
-//         console.log(msg.data);
-//     }
-// }
 connectThoth();
 
 
