@@ -1,31 +1,36 @@
+import { connectThoth, initRender } from './rollcall.js';
+
 let suuid = $('#suuid').val();
 
 let config = {
   iceServers: [{
-    urls: ["stun:stun.l.google.com:19302"]
+    urls: ['stun:stun.l.google.com:19302']
   }]
 };
 
 const pc = new RTCPeerConnection(config);
 pc.onnegotiationneeded = handleNegotiationNeededEvent;
 
-let log = msg => {
-  document.getElementById('div').innerHTML += msg + '<br>'
-}
+let log = msg => { console.log(msg); }
 
 pc.ontrack = function(event) {
   log(event.streams.length + ' track is delivered')
   var el = document.createElement(event.track.kind)
+
+
+  el.id = 'main-stream';
   el.srcObject = event.streams[0]
   el.muted = true
   el.autoplay = true
   el.controls = true
-  el.width = 600
-  document.getElementById('remoteVideos').appendChild(el)
+  el.setAttribute( 'style' , '' );
+  document.getElementById( 'remoteVideos' ).appendChild(el);
+  initRender();
 }
 
 pc.oniceconnectionstatechange = e => log(pc.iceConnectionState)
 
+connectThoth();
 
 
 async function handleNegotiationNeededEvent() {
@@ -41,11 +46,12 @@ $(document).ready(function() {
 
 
 function getCodecInfo() {
-  $.get("/codec/" + suuid, function(data) {
+  $.get('/codec/' + suuid, function(data) {
     try {
       data = JSON.parse(data);
+      console.log(data)
       if (data.length > 1) {
-        log('add audio Transceiver')
+        console.log('add audio Transceiver')
         pc.addTransceiver('audio', {
           'direction': 'sendrecv'
         })
@@ -76,7 +82,7 @@ function getCodecInfo() {
 let sendChannel = null;
 
 function getRemoteSdp() {
-  $.post("/recive", {
+  $.post('/recive', {
     suuid: suuid,
     data: btoa(pc.localDescription.sdp)
   }, function(data) {

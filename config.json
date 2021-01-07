@@ -4,7 +4,7 @@
   },
   "streams": {
     "demo1": {
-      "url": "rtsp://171.25.232.15/f7404d80f4a14ffe93ba72c72523920d"
+      "url": "rtsp://admin:hk888888@10.36.172.101:554/Streaming/Channels/001"
     }
   }
 }
