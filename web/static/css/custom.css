@@ -1,0 +1,19 @@
+*{
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+video {
+    position: absolute;
+}
+
+body {
+    overflow: hidden;
+}
+
+canvas {
+    position: relative;
+}
+
+#remoteVideos {
+    position: relative;
+}
