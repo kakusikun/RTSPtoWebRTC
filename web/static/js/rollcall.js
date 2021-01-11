@@ -3,7 +3,6 @@ let Status = {
     SUCCESS: 16,
     PROCESS: 17,
     CLEAN: 18,
-    SLIENCE: 19,
 }
 
 let Render = {
@@ -11,11 +10,12 @@ let Render = {
     recognizeFaceTitle: "識別中",
     canvas: null,
     ctx: null,
+    image: null,
     coordTitleProp: getCoordProp(0, 0, 1080, 138, 70),
     coordTempProp: getCoordProp(0, 150, 1080, 270, 95),
     coordIdProp: getCoordProp(0, 280, 1080, 355, 75),
     coordIdTitleProp: getCoordProp(0, 355, 1080, 400, 45),
-    coordValidRegionProp: getCoordProp(145, 452, 914, 1465),
+    coordValidRegionProp: getCoordProp(145, 452, 935, 1465),
     coordTitle: null,
     coordTemp: null,
     coordId: null,
@@ -58,12 +58,17 @@ function getCoordFromProp (w, h, Prop) {
 
 function initRender () {
     var canvas = document.createElement( 'canvas' );
+    var image = document.createElement( 'img' );
     var ctx = canvas.getContext('2d');
 
     canvas.id = 'video-canvas';
     Render.canvas = canvas;
     Render.ctx = ctx;
+    image.id = 'effect';
+    image.src = '/static/green_silence.svg';
+    Render.image = image;
 
+    $( '#remoteVideos' )[0].appendChild(image);
     $( '#remoteVideos' )[0].appendChild(canvas);
 
     $( '#main-stream' ).on( 'play', () => {
@@ -88,6 +93,8 @@ function resizeRender () {
         videoElt.height = height;
         Render.canvas.width = videoElt.videoWidth * ratio;
         Render.canvas.height = height;
+        Render.image.width = videoElt.videoWidth * ratio;
+        Render.image.height = height;
         Render.coordTitle = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordTitleProp);
         Render.coordTemp = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordTempProp);
         Render.coordId = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdProp);
@@ -97,50 +104,31 @@ function resizeRender () {
 }
 
 function plotMessage (data) {
+    Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+    Render.image.src = '/static/green.svg';
     switch (data.status) {
         case Status.SUCCESS:
             log( 'success' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
-            plotText(data.face.temperature, Render.coordTemp, 'white', false, 1.0, true);
-            plotText(data.face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0, true);
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75);
+            plotEffect( 'green' );
+            plotText(data.face.temperature, Render.coordTemp, 'white', false, 1.0);
+            plotText(data.face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0);
             break;
         case Status.PROCESS:
             log( 'process' );
-            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75, true);
-            plotText(null, Render.coordTemp, 'green', false, 1.0, true);
-            plotText(null, Render.coordId, 'green', false, 1.0, true);
+            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75);
             break;
-            case Status.CLEAN:
+        case Status.CLEAN:
             log( 'clean' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
-            plotText(null, Render.coordTemp, 'green', false, 1.0, true);
-            plotText(null, Render.coordId, 'green', false, 1.0, true);
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75);
             break;
-            case Status.SLIENCE:
-            log( 'silence' );
-            break;            
     }
 }
 
-function plotRecovery () {
-    plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
-    plotText(null, Render.coordTemp, 'green', false, 1.0, true);
-    plotText(null, Render.coordId, 'green', false, 1.0, true);
-}
-
-function plotText( text, coord, level, background, alpha, clear) {
+function plotText ( text, coord, level, background, alpha) {
     if ( Render.ctx !== null && coord !== null ) {
         var ctx = Render.ctx;
-        var canvas = Render.canvas;
-
-        if ( clear ) {
-            ctx.clearRect(
-                coord.tl.x,
-                coord.tl.y,
-                coord.w,
-                coord.h,
-            );
-        }
+        var image = Render.image;
 
         if ( background ) {
             ctx.fillStyle = `rgba(0, 0, 0, ${ alpha })`;
@@ -160,12 +148,15 @@ function plotText( text, coord, level, background, alpha, clear) {
             switch ( level ) {
                 case 'red':
                     ctx.fillStyle = 'rgb(228, 41, 64)';
+                    image.src = '/static/red.svg';
                     break;
                 case 'green':
                     ctx.fillStyle = 'rgb(121, 175, 42)';
+                    image.src = '/static/green.svg';
                     break;
                 case 'orange':
                     ctx.fillStyle = 'rgb(255, 160, 4)';
+                    image.src = '/static/orange.svg';
                     break;
                 default:
                     ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -182,6 +173,33 @@ function plotText( text, coord, level, background, alpha, clear) {
                 ( coord.tl.y + coord.br.y + yOffset ) / 2,
             );
         }
+    }
+}
+
+function plotEffect ( level ) {
+    if ( Render.ctx !== null ) {
+        var ctx = Render.ctx;
+        var grd = ctx.createLinearGradient(0, Render.coordIdTitle.br.y, 0, Render.coordTitle.br.y);
+        var color = null;
+        switch ( level ) {
+            case 'red':
+                color = '228, 41, 64';
+                break;
+            case 'green':
+                color = '121, 175, 42';
+                break;
+            case 'orange':
+                color = '255, 160, 4';
+                break;
+            default:
+                color = '255, 255, 255';
+                break;
+        }
+
+        grd.addColorStop(0.33, `rgba(${color}, 0.0)`);
+        grd.addColorStop(1.0, `rgba(${color}, 1.0)`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(Render.coordTitle.tl.x, Render.coordTitle.br.y, Render.coordTitle.w, Render.coordIdTitle.br.y - Render.coordTitle.br.y);
     }
 }
 
@@ -209,6 +227,5 @@ function connectThoth () {
         alert('websocket is not connected');
     }
 }
-
 
 export { connectThoth, initRender };

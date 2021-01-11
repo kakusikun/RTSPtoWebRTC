@@ -11,7 +11,6 @@
 <script type="text/javascript" src="/static/js/jquery-3.4.1.min.js"></script>
 <script src="/static/js/bootstrap.min.js"></script>
 <script src="/static/js/adapter-latest.js"></script>
-
 <div class="container">
   <div class="row">
     <!-- <div class="col-3">
@@ -30,3 +29,40 @@
 </div>
 <script type="module" src="/static/js/app.js?ver={{ .version }}"></script>
 </html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+<style>
+.test1 {
+	position: relative
+}
+.test2 {
+	position: absolute;
+}
+</style>
+</head>
+<body>
+
+<div class="test1">
+	<p class="test2">haha</p>
+	<canvas class="test2" id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+</div>
+<script>
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+
+var grd = ctx.createLinearGradient(0, 130, 0, 0);
+
+grd.addColorStop(1.0, "rgba(228,41,64, 1.0)");
+grd.addColorStop(0.5, "rgba(228,41,64, 0.0)");
+ctx.fillStyle = grd;
+ctx.fillRect(20, 20, 150, 100);
+</script>
+
+</body>
+</html> -->

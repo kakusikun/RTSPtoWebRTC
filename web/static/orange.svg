@@ -1,0 +1,26 @@
+<svg width="595" height="1080" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+
+ <g>
+  <title>background</title>
+  <rect x="-1" y="-1" width="597" height="1082" id="canvas_background" fill="none"/>
+  <g id="canvasGrid" display="none">
+   <rect id="svg_2" width="100%" height="100%" x="0" y="0" stroke-width="0" fill="url(#gridpattern)"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <line fill="none" stroke-width="11" x1="75.68422" y1="255.31578" x2="189" y2="255.31578" id="svg_1" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="406.18292" y1="255.39216" x2="519.4987" y2="255.39216" id="svg_3" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="74.17244" y1="824.86214" x2="187.17244" y2="824.86214" id="svg_4" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="405.04306" y1="825.17394" x2="518.04306" y2="825.17394" id="svg_5" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="10.72409" y1="750.69578" x2="149.2238" y2="750.69578" id="svg_6" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(-89.67218780517578 79.97394561767584,750.6958007812501) " stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="443.59471" y1="750.98009" x2="582.09442" y2="750.98009" id="svg_8" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(-89.67218780517578 512.8445434570314,750.9801025390625) " stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="11.55165" y1="329.69578" x2="150.05136" y2="329.69578" id="svg_9" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(-89.67218780517578 80.80150604248044,329.6957702636719) " stroke="#ffa004"/>
+  <line fill="none" stroke-width="11" x1="444.37518" y1="329.69578" x2="582.87489" y2="329.69578" id="svg_10" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(-89.67218780517578 513.625,329.69577026367193) " stroke="#ffa004"/>
+  <line fill="none" stroke-width="5" x1="160.7715" y1="252.2783" x2="420.02029" y2="252.2783" id="svg_11" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="5" x1="166.59332" y1="828.04305" x2="425.8421" y2="828.04305" id="svg_12" stroke-linejoin="undefined" stroke-linecap="undefined" stroke="#ffa004"/>
+  <line fill="none" stroke-width="5" x1="-82.37723" y1="531.87083" x2="237.15866" y2="531.87083" id="svg_13" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(90 77.39071655273428,531.8708496093751) " stroke="#ffa004"/>
+  <line fill="none" stroke-width="5" x1="356.56694" y1="533.78471" x2="676.10283" y2="533.78471" id="svg_14" stroke-linejoin="undefined" stroke-linecap="undefined" transform="rotate(90 516.3348999023438,533.7847290039064) " stroke="#ffa004"/>
+ </g>
+</svg>
