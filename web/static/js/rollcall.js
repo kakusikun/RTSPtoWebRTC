@@ -65,7 +65,7 @@ function initRender () {
     Render.canvas = canvas;
     Render.ctx = ctx;
     image.id = 'effect';
-    image.src = '/static/green_silence.svg';
+    image.src = '';
     Render.image = image;
 
     $( '#remoteVideos' )[0].appendChild(image);
@@ -73,14 +73,15 @@ function initRender () {
 
     $( '#main-stream' ).on( 'play', () => {
         console.log( 'played' );
+        $( '#main-stream' ).css( 'opacity', '1' );
         resizeRender();
-        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
+        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5, true);
     });
     
     $( window ).resize( () => {
         console.log( 'resized' )
         resizeRender();
-        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75, true);
+        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5, true);
     });
 }
 
@@ -104,23 +105,23 @@ function resizeRender () {
 }
 
 function plotMessage (data) {
-    Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+    Render.ctx.clearRect(0,0, Render.canvas.width, Render.canvas.height);
     Render.image.src = '/static/green.svg';
     switch (data.status) {
         case Status.SUCCESS:
             log( 'success' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75);
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5);
             plotEffect( 'green' );
             plotText(data.face.temperature, Render.coordTemp, 'white', false, 1.0);
             plotText(data.face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0);
             break;
         case Status.PROCESS:
             log( 'process' );
-            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.75);
+            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.5);
             break;
         case Status.CLEAN:
             log( 'clean' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.75);
+            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5);
             break;
     }
 }

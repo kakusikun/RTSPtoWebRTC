@@ -91,7 +91,6 @@ func HTTPAPIServerStreamWebRTC(c *gin.Context) {
 			select {
 			case <-noVideo.C:
 				log.Println("noVideo")
-				return
 			case pck := <-ch:
 				if pck.IsKeyFrame {
 					noVideo.Reset(60 * time.Second)
@@ -102,7 +101,7 @@ func HTTPAPIServerStreamWebRTC(c *gin.Context) {
 				}
 				err = muxerWebRTC.WritePacket(pck)
 				if err != nil {
-					log.Println("WritePacket", err)
+					log.Println("http WritePacket", err)
 					return
 				}
 			}

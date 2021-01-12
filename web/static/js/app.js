@@ -1,5 +1,9 @@
 import { connectThoth, initRender } from './rollcall.js';
 
+
+let sendChannel = null;
+let sendChannelTimeId = null;
+
 let suuid = $('#suuid').val();
 
 let config = {
@@ -23,12 +27,18 @@ pc.ontrack = function(event) {
   el.muted = true
   el.autoplay = true
   el.controls = true
-  el.setAttribute( 'style' , '' );
+  el.setAttribute( 'style' , 'opacity: 0' );
   document.getElementById( 'remoteVideos' ).appendChild(el);
   initRender();
 }
 
-pc.oniceconnectionstatechange = e => log(pc.iceConnectionState)
+pc.oniceconnectionstatechange = e => {
+  log(pc.iceConnectionState);
+  if ( pc.iceConnectionState === 'disconnected' ) {
+    log('ICE restart');
+    pc.restartIce();
+  }
+}
 
 connectThoth();
 
@@ -65,21 +75,35 @@ function getCodecInfo() {
         'direction': 'sendrecv'
       });
       //send ping becouse PION not handle RTCSessionDescription.close()
-      sendChannel = pc.createDataChannel('foo');
-      sendChannel.onclose = () => console.log('sendChannel has closed');
-      sendChannel.onopen = () => {
-        console.log('sendChannel has opened');
-        sendChannel.send('ping');
-        setInterval(() => {
-          sendChannel.send('ping');
-        }, 1000)
-      }
-      sendChannel.onmessage = e => log(`Message from DataChannel '${sendChannel.label}' payload '${e.data}'`);
+      setUpSendChannel();
     }
   });
 }
 
-let sendChannel = null;
+function setUpSendChannel () {
+  sendChannel = pc.createDataChannel('foo');
+  sendChannel.onclose = () => console.log('sendChannel has closed');
+  sendChannel.onopen = () => {
+    console.log('sendChannel has opened');
+    sendChannel.send('ping');
+    if ( sendChannelTimeId !== null ) {
+      clearInterval(sendChannelTimeId);
+    }
+    sendChannelTimeId = setInterval(() => {
+      sendChannel.send('ping');
+    }, 1000)
+  }
+  sendChannel.onmessage = e => log(`Message from DataChannel '${sendChannel.label}' payload '${e.data}'`);
+  sendChannel.onerror = () => {
+      setTimeout(() => {
+          console.log("reconnect webrtc");
+          if ( pc.iceConnectionState === 'connected') {
+            setUpSendChannel();
+          }
+      }, 5000);
+  }
+}
+
 
 function getRemoteSdp() {
   $.post('/recive', {
