@@ -86,19 +86,21 @@ func HTTPAPIServerStreamWebRTC(c *gin.Context) {
 		defer Config.clDe(c.PostForm("suuid"), cid)
 		defer muxerWebRTC.Close()
 		var videoStart bool
-		noVideo := time.NewTimer(60 * time.Second)
+		noVideo := time.NewTimer(10 * time.Second)
 		for {
 			select {
 			case <-noVideo.C:
 				log.Println("noVideo")
 			case pck := <-ch:
 				if pck.IsKeyFrame {
-					noVideo.Reset(60 * time.Second)
+					noVideo.Reset(10 * time.Second)
+
 					videoStart = true
 				}
 				if !videoStart {
 					continue
 				}
+				muxerWebRTC.ClientACK.Reset(10 * time.Second)
 				err = muxerWebRTC.WritePacket(pck)
 				if err != nil {
 					log.Println("http WritePacket", err)

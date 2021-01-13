@@ -1,5 +1,9 @@
 import { connectThoth, initRender } from './rollcall.js';
 
+$(document).ready(function() {
+  $('#' + suuid).addClass('active');
+  getCodecInfo();
+});
 
 let sendChannel = null;
 let sendChannelTimeId = null;
@@ -12,16 +16,14 @@ let config = {
   }]
 };
 
+let log = msg => { console.log(msg); }
+
 const pc = new RTCPeerConnection(config);
 pc.onnegotiationneeded = handleNegotiationNeededEvent;
-
-let log = msg => { console.log(msg); }
 
 pc.ontrack = function(event) {
   log(event.streams.length + ' track is delivered')
   var el = document.createElement(event.track.kind)
-
-
   el.id = 'main-stream';
   el.srcObject = event.streams[0]
   el.muted = true
@@ -42,18 +44,11 @@ pc.oniceconnectionstatechange = e => {
 
 connectThoth();
 
-
 async function handleNegotiationNeededEvent() {
   let offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   getRemoteSdp();
 }
-
-$(document).ready(function() {
-  $('#' + suuid).addClass('active');
-  getCodecInfo();
-});
-
 
 function getCodecInfo() {
   $.get('/codec/' + suuid, function(data) {
@@ -74,36 +69,9 @@ function getCodecInfo() {
       pc.addTransceiver('video', {
         'direction': 'sendrecv'
       });
-      //send ping becouse PION not handle RTCSessionDescription.close()
-      setUpSendChannel();
     }
   });
 }
-
-function setUpSendChannel () {
-  sendChannel = pc.createDataChannel('foo');
-  sendChannel.onclose = () => console.log('sendChannel has closed');
-  sendChannel.onopen = () => {
-    console.log('sendChannel has opened');
-    sendChannel.send('ping');
-    if ( sendChannelTimeId !== null ) {
-      clearInterval(sendChannelTimeId);
-    }
-    sendChannelTimeId = setInterval(() => {
-      sendChannel.send('ping');
-    }, 1000)
-  }
-  sendChannel.onmessage = e => log(`Message from DataChannel '${sendChannel.label}' payload '${e.data}'`);
-  sendChannel.onerror = () => {
-      setTimeout(() => {
-          console.log("reconnect webrtc");
-          if ( pc.iceConnectionState === 'connected') {
-            setUpSendChannel();
-          }
-      }, 5000);
-  }
-}
-
 
 function getRemoteSdp() {
   $.post('/recive', {

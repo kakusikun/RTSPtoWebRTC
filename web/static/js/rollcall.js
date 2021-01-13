@@ -71,6 +71,8 @@ function initRender () {
     $( '#remoteVideos' )[0].appendChild(image);
     $( '#remoteVideos' )[0].appendChild(canvas);
 
+    resizeRender();
+    
     $( '#main-stream' ).on( 'play', () => {
         console.log( 'played' );
         $( '#main-stream' ).css( 'opacity', '1' );
