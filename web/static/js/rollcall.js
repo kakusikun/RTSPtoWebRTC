@@ -65,7 +65,7 @@ function initRender () {
     Render.canvas = canvas;
     Render.ctx = ctx;
     image.id = "effect";
-    image.src = "";
+    image.src = "/static/green.svg";
     Render.image = image;
 
     $( "#remoteVideos" )[0].appendChild(image);
@@ -109,7 +109,6 @@ function resizeRender () {
 function plotMessage (data) {
     if ( Render.ctx !== null ) {
         Render.ctx.clearRect(0,0, Render.canvas.width, Render.canvas.height);
-        Render.image.src = "/static/green.svg";
         switch (data.status) {
             case Status.SUCCESS:
                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
@@ -126,9 +125,11 @@ function plotMessage (data) {
                 plotText(data.face.cid.slice(0, 8), Render.coordId, "white", false, 1.0);
                 break;
             case Status.PROCESS:
+                plotEffect( "green" );
                 plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
                 break;
             case Status.CLEAN:
+                plotEffect( "green" );
                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
                 break;
         }
@@ -138,7 +139,6 @@ function plotMessage (data) {
 function plotText ( text, coord, level, background, alpha) {
     if ( Render.ctx !== null && coord !== null ) {
         var ctx = Render.ctx;
-        var image = Render.image;
 
         if ( background ) {
             ctx.fillStyle = `rgba(0, 0, 0, ${ alpha })`;
@@ -158,15 +158,12 @@ function plotText ( text, coord, level, background, alpha) {
             switch ( level ) {
                 case "red":
                     ctx.fillStyle = "rgb(228, 41, 64)";
-                    image.src = "/static/red.svg";
                     break;
                 case "green":
                     ctx.fillStyle = "rgb(121, 175, 42)";
-                    image.src = "/static/green.svg";
                     break;
                 case "orange":
                     ctx.fillStyle = "rgb(255, 160, 4)";
-                    image.src = "/static/orange.svg";
                     break;
                 default:
                     ctx.fillStyle = "rgb(255, 255, 255)";
@@ -189,17 +186,21 @@ function plotText ( text, coord, level, background, alpha) {
 function plotEffect ( level ) {
     if ( Render.ctx !== null ) {
         var ctx = Render.ctx;
+        var image = Render.image;
         var grd = ctx.createLinearGradient(0, Render.coordIdTitle.br.y, 0, Render.coordTitle.br.y);
         var color = null;
         switch ( level ) {
             case "red":
                 color = "228, 41, 64";
+                image.src = "/static/red.svg";
                 break;
             case "green":
                 color = "121, 175, 42";
+                image.src = "/static/green.svg";
                 break;
             case "orange":
                 color = "255, 160, 4";
+                image.src = "/static/orange.svg";
                 break;
             default:
                 color = "255, 255, 255";
@@ -217,7 +218,13 @@ function connectThoth () {
     try {
         var ws = new WebSocket("ws://10.36.172.146:8000");
         ws.onopen = () => console.log("connected");
-        ws.onclose = () => console.log("disconnected");
+        ws.onclose = () => {
+            setTimeout(() => {
+                console.log("reconnect");
+                connectThoth();
+            }, 10000);            
+            console.log("disconnected");
+        }
         ws.onmessage = (msg) => {
             try {
                 var data = JSON.parse(msg.data);
@@ -227,11 +234,7 @@ function connectThoth () {
             }
         }
         ws.onerror = (msg) => {
-            setTimeout(() => {
-                console.log("reconnect");
-                connectThoth();
-            }, 10000);
-            console.log(msg.data);
+            console.log("error");
         }
     } catch (e) {
         alert("websocket is not connected");
