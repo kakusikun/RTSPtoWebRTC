@@ -1,18 +1,15 @@
-import { connectThoth, initRender } from './rollcall.js';
+import { connectThoth, initRender } from "./rollcall.js";
 
 $(document).ready(function() {
-  $('#' + suuid).addClass('active');
+  $("#" + suuid).addClass("active");
   getCodecInfo();
 });
 
-let sendChannel = null;
-let sendChannelTimeId = null;
-
-let suuid = $('#suuid').val();
+let suuid = $("#suuid").val();
 
 let config = {
   iceServers: [{
-    urls: ['stun:stun.l.google.com:19302']
+    urls: ["stun:stun.l.google.com:19302"]
   }]
 };
 
@@ -22,22 +19,22 @@ const pc = new RTCPeerConnection(config);
 pc.onnegotiationneeded = handleNegotiationNeededEvent;
 
 pc.ontrack = function(event) {
-  log(event.streams.length + ' track is delivered')
+  log(event.streams.length + " track is delivered")
   var el = document.createElement(event.track.kind)
-  el.id = 'main-stream';
+  el.id = "main-stream";
   el.srcObject = event.streams[0]
   el.muted = true
   el.autoplay = true
   el.controls = true
-  el.setAttribute( 'style' , 'opacity: 0' );
-  document.getElementById( 'remoteVideos' ).appendChild(el);
+  el.setAttribute( "style" , "opacity: 0" );
+  document.getElementById( "remoteVideos" ).appendChild(el);
   initRender();
 }
 
 pc.oniceconnectionstatechange = e => {
   log(pc.iceConnectionState);
-  if ( pc.iceConnectionState === 'disconnected' ) {
-    log('ICE restart');
+  if ( pc.iceConnectionState === "disconnected" ) {
+    log("ICE restart");
     pc.restartIce();
   }
 }
@@ -51,37 +48,37 @@ async function handleNegotiationNeededEvent() {
 }
 
 function getCodecInfo() {
-  $.get('/codec/' + suuid, function(data) {
+  $.get("/codec/" + suuid, function(data) {
     try {
       data = JSON.parse(data);
       console.log(data)
       if (data.length > 1) {
-        console.log('add audio Transceiver')
-        pc.addTransceiver('audio', {
-          'direction': 'sendrecv'
+        console.log("add audio Transceiver")
+        pc.addTransceiver("audio", {
+          "direction": "sendrecv"
         })
       }
     } catch (e) {
       console.log(e);
     } finally {
 
-      log('add video Transceiver')
-      pc.addTransceiver('video', {
-        'direction': 'sendrecv'
+      log("add video Transceiver")
+      pc.addTransceiver("video", {
+        "direction": "sendrecv"
       });
     }
   });
 }
 
 function getRemoteSdp() {
-  $.post('/recive', {
+  $.post("/recive", {
     suuid: suuid,
     data: btoa(pc.localDescription.sdp)
   }, function(data) {
     try {
 
       pc.setRemoteDescription(new RTCSessionDescription({
-        type: 'answer',
+        type: "answer",
         sdp: atob(data)
       }))
 

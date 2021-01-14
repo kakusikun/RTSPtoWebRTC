@@ -57,39 +57,39 @@ function getCoordFromProp (w, h, Prop) {
 }
 
 function initRender () {
-    var canvas = document.createElement( 'canvas' );
-    var image = document.createElement( 'img' );
-    var ctx = canvas.getContext('2d');
+    var canvas = document.createElement( "canvas" );
+    var image = document.createElement( "img" );
+    var ctx = canvas.getContext("2d");
 
-    canvas.id = 'video-canvas';
+    canvas.id = "video-canvas";
     Render.canvas = canvas;
     Render.ctx = ctx;
-    image.id = 'effect';
-    image.src = '';
+    image.id = "effect";
+    image.src = "";
     Render.image = image;
 
-    $( '#remoteVideos' )[0].appendChild(image);
-    $( '#remoteVideos' )[0].appendChild(canvas);
+    $( "#remoteVideos" )[0].appendChild(image);
+    $( "#remoteVideos" )[0].appendChild(canvas);
 
     resizeRender();
-    
-    $( '#main-stream' ).on( 'play', () => {
-        console.log( 'played' );
-        $( '#main-stream' ).css( 'opacity', '1' );
+
+    $( "#main-stream" ).on( "play", () => {
+        console.log( "played" );
+        $( "#main-stream" ).css( "opacity", "1" );
         resizeRender();
-        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5, true);
+        plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5, true);
     });
     
     $( window ).resize( () => {
-        console.log( 'resized' )
+        console.log( "resized" )
         resizeRender();
-        plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5, true);
+        plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5, true);
     });
 }
 
 function resizeRender () {
     var height =  window.innerHeight;
-    var videoElt = $( '#main-stream' )[ 0 ];
+    var videoElt = $( "#main-stream" )[ 0 ];
     if ( videoElt !== null ) {
         var ratio = height / videoElt.videoHeight;
         videoElt.width = videoElt.videoWidth * ratio;
@@ -107,24 +107,31 @@ function resizeRender () {
 }
 
 function plotMessage (data) {
-    Render.ctx.clearRect(0,0, Render.canvas.width, Render.canvas.height);
-    Render.image.src = '/static/green.svg';
-    switch (data.status) {
-        case Status.SUCCESS:
-            log( 'success' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5);
-            plotEffect( 'green' );
-            plotText(data.face.temperature, Render.coordTemp, 'white', false, 1.0);
-            plotText(data.face.cid.slice(0, 8), Render.coordId, 'white', false, 1.0);
-            break;
-        case Status.PROCESS:
-            log( 'process' );
-            plotText(Render.recognizeFaceTitle, Render.coordTitle, 'green', true, 0.5);
-            break;
-        case Status.CLEAN:
-            log( 'clean' );
-            plotText(Render.generalTitle, Render.coordTitle, 'green', true, 0.5);
-            break;
+    if ( Render.ctx !== null ) {
+        Render.ctx.clearRect(0,0, Render.canvas.width, Render.canvas.height);
+        Render.image.src = "/static/green.svg";
+        switch (data.status) {
+            case Status.SUCCESS:
+                plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+                var temp = parseFloat(data.face.temperature);
+                if ( temp <= 37.5 ) {
+                    plotEffect( "green" );
+                    if ( data.face.employee_id === null ) {
+                        plotEffect( "orange" );
+                    }
+                } else {
+                    plotEffect( "red" );
+                }
+                plotText(data.face.temperature, Render.coordTemp, "white", false, 1.0);
+                plotText(data.face.cid.slice(0, 8), Render.coordId, "white", false, 1.0);
+                break;
+            case Status.PROCESS:
+                plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
+                break;
+            case Status.CLEAN:
+                plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+                break;
+        }
     }
 }
 
@@ -149,25 +156,25 @@ function plotText ( text, coord, level, background, alpha) {
             var textScale = coord.textHeight / metric.actualBoundingBoxAscent;
     
             switch ( level ) {
-                case 'red':
-                    ctx.fillStyle = 'rgb(228, 41, 64)';
-                    image.src = '/static/red.svg';
+                case "red":
+                    ctx.fillStyle = "rgb(228, 41, 64)";
+                    image.src = "/static/red.svg";
                     break;
-                case 'green':
-                    ctx.fillStyle = 'rgb(121, 175, 42)';
-                    image.src = '/static/green.svg';
+                case "green":
+                    ctx.fillStyle = "rgb(121, 175, 42)";
+                    image.src = "/static/green.svg";
                     break;
-                case 'orange':
-                    ctx.fillStyle = 'rgb(255, 160, 4)';
-                    image.src = '/static/orange.svg';
+                case "orange":
+                    ctx.fillStyle = "rgb(255, 160, 4)";
+                    image.src = "/static/orange.svg";
                     break;
                 default:
-                    ctx.fillStyle = 'rgb(255, 255, 255)';
+                    ctx.fillStyle = "rgb(255, 255, 255)";
                     break;
 
             }
     
-            ctx.font = `bold ${ parseInt( 10 * textScale ) }px 'Noto Sans TC'`;
+            ctx.font = `bold ${ parseInt( 10 * textScale ) }px "Noto Sans TC"`;
             var yOffset = ctx.measureText(text).actualBoundingBoxAscent;
             ctx.textAlign = "center";
             ctx.fillText(
@@ -185,17 +192,17 @@ function plotEffect ( level ) {
         var grd = ctx.createLinearGradient(0, Render.coordIdTitle.br.y, 0, Render.coordTitle.br.y);
         var color = null;
         switch ( level ) {
-            case 'red':
-                color = '228, 41, 64';
+            case "red":
+                color = "228, 41, 64";
                 break;
-            case 'green':
-                color = '121, 175, 42';
+            case "green":
+                color = "121, 175, 42";
                 break;
-            case 'orange':
-                color = '255, 160, 4';
+            case "orange":
+                color = "255, 160, 4";
                 break;
             default:
-                color = '255, 255, 255';
+                color = "255, 255, 255";
                 break;
         }
 
@@ -208,9 +215,9 @@ function plotEffect ( level ) {
 
 function connectThoth () {
     try {
-        var ws = new WebSocket('ws://10.36.172.146:8000');
-        ws.onopen = () => console.log('connected');
-        ws.onclose = () => console.log('disconnected');
+        var ws = new WebSocket("ws://10.36.172.146:8000");
+        ws.onopen = () => console.log("connected");
+        ws.onclose = () => console.log("disconnected");
         ws.onmessage = (msg) => {
             try {
                 var data = JSON.parse(msg.data);
@@ -227,7 +234,7 @@ function connectThoth () {
             console.log(msg.data);
         }
     } catch (e) {
-        alert('websocket is not connected');
+        alert("websocket is not connected");
     }
 }
 
