@@ -91,13 +91,25 @@ function resizeRender () {
     var height =  window.innerHeight;
     var videoElt = $( "#main-stream" )[ 0 ];
     if ( videoElt !== null ) {
-        var ratio = height / videoElt.videoHeight;
-        videoElt.width = videoElt.videoWidth * ratio;
-        videoElt.height = height;
-        Render.canvas.width = videoElt.videoWidth * ratio;
-        Render.canvas.height = height;
-        Render.image.width = videoElt.videoWidth * ratio;
-        Render.image.height = height;
+        if ( videoElt.videoHeight > videoElt.videoWidth ) {
+            var ratio = height / videoElt.videoHeight;
+            videoElt.width = videoElt.videoWidth * ratio;
+            videoElt.height = height;
+            Render.canvas.width = videoElt.videoWidth * ratio;
+            Render.canvas.height = height;
+            Render.image.width = videoElt.videoWidth * ratio;
+            Render.image.height = height;
+        } else {
+            var ratio = height / videoElt.videoWidth;
+            videoElt.width = height;
+            videoElt.height = videoElt.videoHeight * ratio;
+            Render.canvas.width = videoElt.videoHeight * ratio;
+            Render.canvas.height = height;
+            Render.image.width = videoElt.videoHeight * ratio;
+            Render.image.height = height;
+            $( "#main-stream" ).css( "transform", `rotate(90deg) translate(0px, -${videoElt.height}px)` );
+            $( "#main-stream" ).css( "transform-origin", "top left" );
+        }
         Render.coordTitle = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordTitleProp);
         Render.coordTemp = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordTempProp);
         Render.coordId = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdProp);
@@ -112,7 +124,7 @@ function plotMessage (data) {
         switch (data.status) {
             case Status.SUCCESS:
                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
-                var temp = parseFloat(data.face.temperature);
+                var temp = parseFloat(data.face.temperature).toFixed(1);
                 if ( temp <= 37.5 ) {
                     plotEffect( "green" );
                     if ( data.face.employee_id === null ) {
@@ -121,7 +133,7 @@ function plotMessage (data) {
                 } else {
                     plotEffect( "red" );
                 }
-                plotText(data.face.temperature, Render.coordTemp, "white", false, 1.0);
+                plotText(temp.toString(), Render.coordTemp, "white", false, 1.0);
                 plotText(data.face.cid.slice(0, 8), Render.coordId, "white", false, 1.0);
                 break;
             case Status.PROCESS:
