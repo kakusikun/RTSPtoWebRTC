@@ -125,12 +125,12 @@ function plotMessage (data) {
                 plotText(data.face.cid.slice(0, 8), Render.coordId, "white", false, 1.0);
                 break;
             case Status.PROCESS:
-                plotEffect( "green" );
                 plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
+                Render.image.src = "/static/green.svg";
                 break;
             case Status.CLEAN:
-                plotEffect( "green" );
                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+                Render.image.src = "/static/green.svg";
                 break;
         }
     }
