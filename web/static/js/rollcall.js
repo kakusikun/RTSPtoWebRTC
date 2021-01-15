@@ -5,6 +5,8 @@ let Status = {
     CLEAN: 18,
 }
 
+let isCleanCount = 0;
+
 let Render = {
     generalTitle: "Acer Inc. へようこそ",
     recognizeFaceTitle: "識別中",
@@ -15,12 +17,14 @@ let Render = {
     coordTempProp: getCoordProp(0, 150, 1080, 270, 95),
     coordIdProp: getCoordProp(0, 280, 1080, 355, 75),
     coordIdTitleProp: getCoordProp(0, 355, 1080, 400, 45),
-    coordValidRegionProp: getCoordProp(145, 452, 935, 1465),
+    coordValidRegionProp: getCoordProp(145, 452, 935, 1465, 0),
+    coordEffectProp: getCoordProp(0, 138, 1080, 400, 0),
     coordTitle: null,
     coordTemp: null,
     coordId: null,
     coordIdTitle: null,
     coordValidRegion: null,
+    coordEffect: null,
 };
 
 let log = msg => { console.log(msg); }
@@ -58,8 +62,8 @@ function getCoordFromProp (w, h, Prop) {
 
 function initRender () {
     var canvas = document.createElement( "canvas" );
-    var image = document.createElement( "img" );
     var ctx = canvas.getContext("2d");
+    var image = document.createElement( "img" );
 
     canvas.id = "video-canvas";
     Render.canvas = canvas;
@@ -115,43 +119,106 @@ function resizeRender () {
         Render.coordId = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdProp);
         Render.coordIdTitle = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdTitleProp);
         Render.coordValidRegion = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordValidRegionProp);
+        Render.coordEffect = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordEffectProp);
     }
 }
 
 function plotMessage (data) {
     if ( Render.ctx !== null ) {
-        Render.ctx.clearRect(0,0, Render.canvas.width, Render.canvas.height);
-        switch (data.status) {
-            case Status.SUCCESS:
+        var Face = data.face;
+        if ( Face !== null ) {
+            Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+            if ( Face.is_stayed ) {
                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
-                var temp = parseFloat(data.face.temperature).toFixed(1);
-                if ( temp <= 37.5 ) {
-                    plotEffect( "green" );
-                    if ( data.face.employee_id === null ) {
-                        plotEffect( "orange" );
+                var Temp = Face.temperature.toFixed(1);
+                var Name = Face.name;
+                var Bbox = Face.bbox;
+                if ( Temp <= 37.5 ) {
+                    if ( Name === null ) {
+                        Name = "ゲスト";
+                        plotEffect( "orange", true );
+                    } else {
+                        plotEffect( "green", true );
                     }
                 } else {
-                    plotEffect( "red" );
+                    if ( Name === null ) {
+                        Name = "ゲスト";
+                    }
+                    plotEffect( "red", true );
                 }
-                plotText(temp.toString(), Render.coordTemp, "white", false, 1.0);
-                plotText(data.face.cid.slice(0, 8), Render.coordId, "white", false, 1.0);
-                break;
-            case Status.PROCESS:
+                plotText(Temp.toString(), Render.coordTemp, "white", false, 1.0);
+                plotText(Name, Render.coordId, "white", false, 1.0);
+                plotBbox(Bbox);
+            } else {
                 plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
-                Render.image.src = "/static/green.svg";
-                break;
-            case Status.CLEAN:
-                plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
-                Render.image.src = "/static/green.svg";
-                break;
+                plotEffect( "green", false );
+            }
+            isCleanCount = 0;
+        } else if ( isCleanCount === 3 ) {
+            Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+            plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+            plotEffect( "green", false );
+            isCleanCount += 1;
+        } else if ( isCleanCount < 4 ) {
+            isCleanCount += 1;
         }
     }
+}
+// function plotMessage (data) {
+//     if ( Render.ctx !== null ) {
+//         switch (data.status) {
+//             case Status.SUCCESS:
+//                 if ( data.face.update_duration <= 30 ) {
+//                     Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+//                     if ( data.face.is_stayed ) {
+//                         plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+//                         var temp = data.face.temperature.toFixed(1);
+//                         var name = null;
+//                         if ( data.face.employee_id !== null ) {
+//                             name = data.face.name;
+//                         }                 
+//                         if ( temp <= 37.5 ) {
+//                             if ( name === null ) {
+//                                 name = "ゲスト";
+//                                 plotEffect( "orange" );
+//                             } else {
+//                                 plotEffect( "green" );
+//                             }
+//                         } else {
+//                             if ( name === null ) {
+//                                 name = "ゲスト";
+//                             }
+//                             plotEffect( "red" );
+//                         }
+//                         plotText(temp.toString(), Render.coordTemp, "white", false, 1.0);
+//                         plotText(name, Render.coordId, "white", false, 1.0);
+//                         plotBbox(data.face.bbox)
+//                     } else {
+//                         plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
+//                         Render.image.src = "/static/green.svg";
+//                     }
+//                 }
+//                 break;
+//             case Status.CLEAN:
+//                 Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
+//                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+//                 Render.image.src = "/static/green.svg";
+//                 break;
+//         }
+//     }
+// }
+
+function plotBbox ( bbox ) {
+    var ratio = Render.canvas.height / 1920.0;
+    var ctx = Render.ctx;
+    ctx.lineWidth = 15;
+    ctx.strokeStyle = 'white';
+    ctx.strokeRect( bbox[0] * ratio, bbox[1] * ratio, ( bbox[2] - bbox[0] ) * ratio, ( bbox[3] - bbox[1 ]) * ratio );
 }
 
 function plotText ( text, coord, level, background, alpha) {
     if ( Render.ctx !== null && coord !== null ) {
         var ctx = Render.ctx;
-
         if ( background ) {
             ctx.fillStyle = `rgba(0, 0, 0, ${ alpha })`;
             ctx.fillRect(
@@ -195,11 +262,10 @@ function plotText ( text, coord, level, background, alpha) {
     }
 }
 
-function plotEffect ( level ) {
+function plotEffect ( level, gradient ) {
     if ( Render.ctx !== null ) {
         var ctx = Render.ctx;
         var image = Render.image;
-        var grd = ctx.createLinearGradient(0, Render.coordIdTitle.br.y, 0, Render.coordTitle.br.y);
         var color = null;
         switch ( level ) {
             case "red":
@@ -218,11 +284,13 @@ function plotEffect ( level ) {
                 color = "255, 255, 255";
                 break;
         }
-
-        grd.addColorStop(0.33, `rgba(${color}, 0.0)`);
-        grd.addColorStop(1.0, `rgba(${color}, 1.0)`);
-        ctx.fillStyle = grd;
-        ctx.fillRect(Render.coordTitle.tl.x, Render.coordTitle.br.y, Render.coordTitle.w, Render.coordIdTitle.br.y - Render.coordTitle.br.y);
+        if ( gradient ) {
+            var grd = ctx.createLinearGradient( 0, Render.coordEffect.br.y, 0, Render.coordEffect.tl.y );
+            grd.addColorStop( 0.33, `rgba(${color}, 0.0)` );
+            grd.addColorStop( 1.0, `rgba(${color}, 1.0)` );
+            ctx.fillStyle = grd;
+            ctx.fillRect( Render.coordEffect.tl.x, Render.coordEffect.tl.y, Render.coordEffect.w, Render.coordEffect.h );
+        }
     }
 }
 
