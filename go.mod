@@ -5,4 +5,5 @@ go 1.15
 require (
 	github.com/deepch/vdk v0.0.0-20210106145838-3c9911e11bd4
 	github.com/gin-gonic/gin v1.6.3
+	github.com/gorilla/websocket v1.4.2
 )

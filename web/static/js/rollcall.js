@@ -7,6 +7,8 @@ let Status = {
 
 let isCleanCount = 0;
 
+let wsIp = null;
+
 let Render = {
     generalTitle: "Acer Inc. へようこそ",
     recognizeFaceTitle: "識別中",
@@ -296,7 +298,7 @@ function plotEffect ( level, gradient ) {
 
 function connectThoth () {
     try {
-        var ws = new WebSocket("ws://10.36.172.146:8000");
+        var ws = new WebSocket("ws://127.0.0.1:8080/rollcall");
         ws.onopen = () => console.log("connected");
         ws.onclose = () => {
             setTimeout(() => {
