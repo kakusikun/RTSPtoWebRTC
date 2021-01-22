@@ -4,6 +4,10 @@
 
 package main
 
+import (
+	"log"
+)
+
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
@@ -37,10 +41,12 @@ func (h *Hub) run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+			log.Println("client registered")
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
+				log.Println("client unregistered")
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {

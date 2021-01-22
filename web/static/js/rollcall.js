@@ -5,31 +5,45 @@ let Status = {
     CLEAN: 18,
 }
 
-let isCleanCount = 0;
-
 let wsIp = null;
+
+let blackList = [];
+
+let currentCid = '';
 
 let Render = {
     generalTitle: "Acer Inc. へようこそ",
     recognizeFaceTitle: "識別中",
+    takeTemperatureTitle: "体温を測るため、動うごかないでください",
     canvas: null,
     ctx: null,
     image: null,
+    validRegion: [145, 452, 935, 1465],
+    validFaceWidth: 200,
     coordTitleProp: getCoordProp(0, 0, 1080, 138, 70),
     coordTempProp: getCoordProp(0, 150, 1080, 270, 95),
     coordIdProp: getCoordProp(0, 280, 1080, 355, 75),
     coordIdTitleProp: getCoordProp(0, 355, 1080, 400, 45),
+    coordIdNoTitleProp: getCoordProp(0, 303, 1080, 378, 75),
     coordValidRegionProp: getCoordProp(145, 452, 935, 1465, 0),
     coordEffectProp: getCoordProp(0, 138, 1080, 400, 0),
     coordTitle: null,
     coordTemp: null,
     coordId: null,
     coordIdTitle: null,
+    coordIdNoTitle: null,
     coordValidRegion: null,
     coordEffect: null,
 };
 
 let log = msg => { console.log(msg); }
+
+function removeValueInArray ( array, value ) {
+    var index = array.indexOf( value );
+    if ( index !== -1 ) {
+        array.splice(index, 1);
+    }
+}
 
 function getCoordProp (px1, py1, px2, py2, th) {
     return {
@@ -97,7 +111,7 @@ function resizeRender () {
     var height =  window.innerHeight;
     var videoElt = $( "#main-stream" )[ 0 ];
     if ( videoElt !== null ) {
-        if ( videoElt.videoHeight > videoElt.videoWidth ) {
+        if ( videoElt.videoHeight >= videoElt.videoWidth ) {
             var ratio = height / videoElt.videoHeight;
             videoElt.width = videoElt.videoWidth * ratio;
             videoElt.height = height;
@@ -120,6 +134,7 @@ function resizeRender () {
         Render.coordTemp = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordTempProp);
         Render.coordId = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdProp);
         Render.coordIdTitle = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdTitleProp);
+        Render.coordIdNoTitle = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordIdNoTitleProp);
         Render.coordValidRegion = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordValidRegionProp);
         Render.coordEffect = getCoordFromProp(Render.canvas.width, Render.canvas.height, Render.coordEffectProp);
     }
@@ -129,93 +144,100 @@ function plotMessage (data) {
     if ( Render.ctx !== null ) {
         var Face = data.face;
         if ( Face !== null ) {
-            Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
-            if ( Face.is_stayed ) {
-                plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+            if ( checkRighteousFace( Face ) ) {
+                Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
                 var Temp = Face.temperature.toFixed(1);
-                var Name = Face.name;
-                var Bbox = Face.bbox;
-                if ( Temp <= 37.5 ) {
-                    if ( Name === null ) {
-                        Name = "ゲスト";
-                        plotEffect( "orange", true );
+                if ( Face.is_stayed ) {
+                    currentCid = Face.cid;
+                    if ( Temp < 0 ) {
+                        plotText(Render.takeTemperatureTitle, Render.coordTitle, "green", true, 0.5);
                     } else {
-                        plotEffect( "green", true );
+                        plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
+                        var Name = Face.name;
+                        var Title = Face.titles;
+                        if ( Temp <= 37.5 ) {
+                            if ( Name === null ) {
+                                Name = `ゲスト(${Face.cid.slice(0, 4)})`;
+                                plotEffect( "orange", true );
+                            } else {
+                                plotEffect( "green", true );
+                            }
+                        } else {
+                            if ( Name === null ) {
+                                Name = `ゲスト(${Face.cid.slice(0, 4)})`;
+                            }
+                            plotEffect( "red", true );
+                        }
+                        plotText(Temp.toString(), Render.coordTemp, "white", false, 1.0);
+                        if ( Title === null ) {
+                            plotText(Name, Render.coordIdNoTitle, "white", false, 1.0);
+                        } else {
+                            plotText(Name, Render.coordId, "white", false, 1.0);
+                            plotText(Title, Render.coordIdTitle, "white", false, 1.0);
+                        }
                     }
+                    plotFace( Face );
                 } else {
-                    if ( Name === null ) {
-                        Name = "ゲスト";
-                    }
-                    plotEffect( "red", true );
+                    plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
+                    plotEffect( "green", false );
                 }
-                plotText(Temp.toString(), Render.coordTemp, "white", false, 1.0);
-                plotText(Name, Render.coordId, "white", false, 1.0);
-                plotBbox(Bbox);
-            } else {
-                plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
-                plotEffect( "green", false );
             }
-            isCleanCount = 0;
-        } else if ( isCleanCount === 3 ) {
+        } else {
             Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
             plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
             plotEffect( "green", false );
-            isCleanCount += 1;
-        } else if ( isCleanCount < 4 ) {
-            isCleanCount += 1;
+            checkRighteousFace( Face );
         }
     }
 }
-// function plotMessage (data) {
-//     if ( Render.ctx !== null ) {
-//         switch (data.status) {
-//             case Status.SUCCESS:
-//                 if ( data.face.update_duration <= 30 ) {
-//                     Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
-//                     if ( data.face.is_stayed ) {
-//                         plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
-//                         var temp = data.face.temperature.toFixed(1);
-//                         var name = null;
-//                         if ( data.face.employee_id !== null ) {
-//                             name = data.face.name;
-//                         }                 
-//                         if ( temp <= 37.5 ) {
-//                             if ( name === null ) {
-//                                 name = "ゲスト";
-//                                 plotEffect( "orange" );
-//                             } else {
-//                                 plotEffect( "green" );
-//                             }
-//                         } else {
-//                             if ( name === null ) {
-//                                 name = "ゲスト";
-//                             }
-//                             plotEffect( "red" );
-//                         }
-//                         plotText(temp.toString(), Render.coordTemp, "white", false, 1.0);
-//                         plotText(name, Render.coordId, "white", false, 1.0);
-//                         plotBbox(data.face.bbox)
-//                     } else {
-//                         plotText(Render.recognizeFaceTitle, Render.coordTitle, "green", true, 0.5);
-//                         Render.image.src = "/static/green.svg";
-//                     }
-//                 }
-//                 break;
-//             case Status.CLEAN:
-//                 Render.ctx.clearRect(0, 0, Render.canvas.width, Render.canvas.height);
-//                 plotText(Render.generalTitle, Render.coordTitle, "green", true, 0.5);
-//                 Render.image.src = "/static/green.svg";
-//                 break;
-//         }
-//     }
-// }
 
-function plotBbox ( bbox ) {
+function checkRighteousFace ( Face ) {
+    var isRighteous = false;
+    if ( Face !== null ) {
+        if ( !blackList.includes( Face.cid ) ) {
+            if ( Face.bbox[0] > Render.validRegion[0] && 
+                 Face.bbox[2] < Render.validRegion[2] &&
+                 Face.bbox[1] > Render.validRegion[1] &&
+                 Face.bbox[3] < Render.validRegion[3] &&
+                 ( Face.bbox[2] - Face.bbox[0] ) > Render.validFaceWidth ) {
+                // console.log( Face.bbox[2] - Face.bbox[0] );
+                isRighteous = true;
+            } else {
+                if ( Face.is_stayed ) {
+                    blackList.push( Face.cid );
+                    setTimeout( () => {
+                        removeValueInArray( blackList, Face.cid );
+                    }, 2000);
+                }
+            }
+        } 
+    } else {
+        if ( !blackList.includes( currentCid ) ) {
+            blackList.push( currentCid );
+            setTimeout( () => {
+                removeValueInArray( blackList, currentCid );
+            }, 2000);
+        }
+    }
+    return isRighteous
+}
+
+
+function plotFace ( Face ) {
+    var Bbox = Face.bbox;
+    var Landmark = Face.landmark;
     var ratio = Render.canvas.height / 1920.0;
     var ctx = Render.ctx;
     ctx.lineWidth = 15;
     ctx.strokeStyle = 'white';
-    ctx.strokeRect( bbox[0] * ratio, bbox[1] * ratio, ( bbox[2] - bbox[0] ) * ratio, ( bbox[3] - bbox[1 ]) * ratio );
+    ctx.strokeRect( Bbox[0] * ratio, Bbox[1] * ratio, ( Bbox[2] - Bbox[0] ) * ratio, ( Bbox[3] - Bbox[1 ]) * ratio );
+    Landmark.forEach(l => {
+        ctx.beginPath();
+        ctx.arc(l[0] * ratio, l[1] * ratio, 8, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+    });
 }
 
 function plotText ( text, coord, level, background, alpha) {

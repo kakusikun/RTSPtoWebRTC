@@ -1,7 +1,7 @@
 {
   "server": {
     "http_port": ":8083",
-    "ws_port": ":8080"
+    "ws_port": "0.0.0.0:8080"
   },
   "streams": {
     "demo1": {
