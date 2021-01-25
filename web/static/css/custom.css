@@ -8,6 +8,7 @@ video {
 
 body {
     overflow: hidden;
+    background-color: black;
 }
 
 canvas {

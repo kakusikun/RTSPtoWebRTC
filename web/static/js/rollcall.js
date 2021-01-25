@@ -9,6 +9,7 @@ let wsIp = null;
 
 let blackList = {};
 
+let currentCids = [];
 let currentCid = '';
 
 let Render = {
@@ -185,7 +186,7 @@ function plotMessage (data) {
 function checkRighteousFace ( Face ) {
     var isRighteous = false;
     if ( Face !== null ) {
-        if ( !blackList.includes( Face.cid ) ) {
+        if ( !( Face.cid in blackList ) ) {
             if ( Face.bbox[0] > Render.validRegion[0] && 
                  Face.bbox[2] < Render.validRegion[2] &&
                  Face.bbox[1] > Render.validRegion[1] &&
@@ -196,17 +197,21 @@ function checkRighteousFace ( Face ) {
             } else {
                 if ( Face.is_stayed ) {
                     blackList[ Face.cid ] = true;
+                    currentCid.push( Face.cid );
                     setTimeout( () => {
-                        delete blackList[ Face.cid ];
+                        var cid = currentCid.shift();
+                        delete blackList[ cid ];
                     }, 2000);
                 }
             }
         } 
     } else {
-        if ( !blackList.includes( currentCid ) ) {
-            blackList[ Face.cid ] = true;
+        if ( !( currentCid in blackList ) ) {
+            blackList[ currentCid ] = true;
+            currentCids.push( currentCid );
             setTimeout( () => {
-                delete blackList[ Face.cid ];
+                var cid = currentCid.shift();
+                delete blackList[ cid ];
             }, 2000);
         }
     }
