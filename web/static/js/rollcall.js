@@ -7,7 +7,7 @@ let Status = {
 
 let wsIp = null;
 
-let blackList = [];
+let blackList = {};
 
 let currentCid = '';
 
@@ -35,15 +35,6 @@ let Render = {
     coordValidRegion: null,
     coordEffect: null,
 };
-
-let log = msg => { console.log(msg); }
-
-function removeValueInArray ( array, value ) {
-    var index = array.indexOf( value );
-    if ( index !== -1 ) {
-        array.splice(index, 1);
-    }
-}
 
 function getCoordProp (px1, py1, px2, py2, th) {
     return {
@@ -200,22 +191,22 @@ function checkRighteousFace ( Face ) {
                  Face.bbox[1] > Render.validRegion[1] &&
                  Face.bbox[3] < Render.validRegion[3] &&
                  ( Face.bbox[2] - Face.bbox[0] ) > Render.validFaceWidth ) {
-                // console.log( Face.bbox[2] - Face.bbox[0] );
+                console.log( Face.bbox[2] - Face.bbox[0] );
                 isRighteous = true;
             } else {
                 if ( Face.is_stayed ) {
-                    blackList.push( Face.cid );
+                    blackList[ Face.cid ] = true;
                     setTimeout( () => {
-                        removeValueInArray( blackList, Face.cid );
+                        delete blackList[ Face.cid ];
                     }, 2000);
                 }
             }
         } 
     } else {
         if ( !blackList.includes( currentCid ) ) {
-            blackList.push( currentCid );
+            blackList[ Face.cid ] = true;
             setTimeout( () => {
-                removeValueInArray( blackList, currentCid );
+                delete blackList[ Face.cid ];
             }, 2000);
         }
     }
