@@ -192,25 +192,26 @@ function checkRighteousFace ( Face ) {
                  Face.bbox[1] > Render.validRegion[1] &&
                  Face.bbox[3] < Render.validRegion[3] &&
                  ( Face.bbox[2] - Face.bbox[0] ) > Render.validFaceWidth ) {
-                console.log( Face.bbox[2] - Face.bbox[0] );
+                // console.log( Face.bbox[2] - Face.bbox[0] );
                 isRighteous = true;
             } else {
                 if ( Face.is_stayed ) {
                     blackList[ Face.cid ] = true;
-                    currentCid.push( Face.cid );
+                    currentCids.push( Face.cid );
                     setTimeout( () => {
-                        var cid = currentCid.shift();
+                        var cid = currentCids.shift();
                         delete blackList[ cid ];
                     }, 2000);
                 }
             }
         } 
     } else {
-        if ( !( currentCid in blackList ) ) {
+        if ( !( currentCid in blackList && currentCid !== null ) ) {
             blackList[ currentCid ] = true;
             currentCids.push( currentCid );
+            currentCid = null;
             setTimeout( () => {
-                var cid = currentCid.shift();
+                var cid = currentCids.shift();
                 delete blackList[ cid ];
             }, 2000);
         }
